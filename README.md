@@ -19,7 +19,7 @@ It only works on Linux!!
 
 ## 通过命令行方式启动 (command line)
 ```
-python crcrawler_sqlmap.py [options]
+python crawler_sqlmap.py [options]
 
 Options:
   -h, --help            使用帮助
@@ -187,6 +187,7 @@ sudo apt-get install xvfb
 ````
 https://github.com/mozilla/geckodriver/releases
 下载完成后解压至/usr/bin或/usr/local/bin
+注意：由于默认安装的selenium版本不是最新版，请下载版本<= 0.14.0
 ````
 5. selenium:
 ````
