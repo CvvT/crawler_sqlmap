@@ -35,7 +35,7 @@ class Crawler(object):
         4. proxy: 代理模块
         5. salScanner: sqlmap任务调度模块
     """
-    def __init__(self, base_dir, target=None, data=None, setting=Setting()):
+    def __init__(self, base_dir, target=None, data=None, setting=Setting(True)):
         self.base_dir = base_dir
         self.entry = setting.url if setting.url else target
         if not self.entry:
@@ -61,6 +61,7 @@ class Crawler(object):
         self.browser = HeadlessBrowser(firefox_profile=profile, capabilities=capabilities)
         # catch signal whenever a page is loaded
         self.browser.onfinish.connect(self.parse_page)
+        self.browser.state_experiment(setting.experiment)
 
         # initialize sqlmap manager
         self.sqlScanner = Autosql(Global.SERVER_IP, Global.SERVER_PORT)
@@ -75,7 +76,7 @@ class Crawler(object):
 
     def report(self):
         self.scheduler.wait()
-        self.sqlScanner.wait_task(interval=20)
+        self.sqlScanner.wait_task(interval=10)
         timestrip = time.strftime("%Y-%m-%d", time.localtime())
         with open(os.path.join(self.setting.output, "report_%s.json" % timestrip), "w") as f:
             cont = {task: data for task, data in self.sqlScanner.data_tasks().items()
@@ -91,7 +92,7 @@ class Crawler(object):
             simple: 解析content抽取重要数据生成的报告，字典类型
         """
         self.scheduler.wait()
-        self.sqlScanner.wait_task(interval=20)
+        self.sqlScanner.wait_task(interval=10)
         cont = {task: data for task, data in self.sqlScanner.data_tasks().items()
                 if data and len(data) >= 2}
         simple = list()

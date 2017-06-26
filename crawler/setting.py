@@ -23,6 +23,8 @@ parser.add_option("--threads", dest="threads", action="store", default=1, type="
                   help="Max number of concurrent HTTP(s) requests (default 1)")
 parser.add_option("-o", "--output", dest="output", action="store", default=".",
                   help="directory for report file")
+parser.add_option("-e", "--experiment", dest="expr", action="store_true", default=False,
+                  help="enable experiment features")
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -35,7 +37,8 @@ Default = {
     "threads": 1,
     "timeout": 30,
     "output": ".",
-    "test": False
+    "test": False,
+    "experiment": False
 }
 
 class Setting(object):
@@ -53,6 +56,7 @@ class Setting(object):
             setattr(self, "level", options.level)
 
             if options.nocheckhost: setattr(self, "nocheckhost", True)
+            if options.expr: setattr(self, "experiment", True)
             if options.test: setattr(self, "test", True)
 
     def __setattr__(self, key, value):

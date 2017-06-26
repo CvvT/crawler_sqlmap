@@ -7,7 +7,7 @@ import traceback
 from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import NoAlertPresentException
 
 from .decorator import after
 from .signal import Finish
@@ -27,6 +27,8 @@ class HeadlessBrowser(webdriver.Firefox):
     def __init__(self, **kwargs):
         self.display = Display(visible=0, size=(800, 600))
         self.display.start()
+
+        self._experiment = False
         # signal
         self.onfinish = Finish()
 
@@ -36,6 +38,9 @@ class HeadlessBrowser(webdriver.Firefox):
         logger.debug("start to quit browser")
         self.quit()
         self.display.stop()
+
+    def state_experiment(self, value):
+        self._experiment = value
 
     @after("finished")
     def get(self, url):
@@ -47,12 +52,56 @@ class HeadlessBrowser(webdriver.Firefox):
         logger.debug("[*]Processing %s with %s" % (url, json.dumps(data)))
         self.execute_script(post_js(url, data))  # synchronous api???
 
+    def click_buttons(self):
+        """
+
+        consider the consequence of clicking buttons:
+        1. redirect: well, redirecting usually occurs with tag 'a' rather than 'button' or 'input', so I
+                    ignore this situation right now. Maybe I shouldn't?
+        2. alert: handler alert well
+        :return:
+        """
+        btns = self.find_elements_by_tag_name("button")
+        for btn in btns:
+            try:
+                logger.debug("find a button and click on it")
+                btn.click()
+                self.switch_to.alert.accept()
+            except NoAlertPresentException:
+                pass
+            except:
+                traceback.print_exc()
+        btns = self.find_elements_by_xpath('//input[@type="button"]')
+        # btns = self.find_elements_by_xpath('//input[@onclick]')
+        for btn in btns:
+            try:
+                btn.click()
+                self.switch_to.alert.accept()
+            except NoAlertPresentException:
+                pass
+            except:
+                traceback.print_exc()
+            # it seems like we can declare that the button isn't inside a form
+            # make sure it isn't inside a form
+            # try:
+            #     form = btn.find_element_by_xpath('./ancestor::form')
+            # except NoSuchElementException:
+            #     try:
+            #         btn.click()
+            #     except:
+            #         traceback.print_exc()
+            # else:
+            #     logger.debug("it is inside a form")
+
     def finished(self):
         try:
             # make sure js has executed
             wait = WebDriverWait(self, 10)
             wait.until(jQuery_load())
             wait.until(jScript_load())
+            # deal with buttons which may change the content
+            if self._experiment:
+                self.click_buttons()
             page = Page(self.current_url, self.page_source)
             self.onfinish(page)
         except Exception as e:    # TimeoutException:
@@ -61,7 +110,7 @@ class HeadlessBrowser(webdriver.Firefox):
             traceback.print_exc()
             self.onfinish(None)
 
-    # support with notation
+    # support with notation 'with'
     def __enter__(self):
         # All work should be done while initializing
         pass

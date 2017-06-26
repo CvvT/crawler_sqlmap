@@ -55,6 +55,7 @@ class Scheduler(object):
                     if depth >= setting.depth != -1:
                         continue
                     # record the depth we are dealing with before we actually get the page
+                    # TODO: store depth rather than using global variable
                     Global.CURRENT_DEPTH = depth
                     if data:
                         browser.post(target, data)

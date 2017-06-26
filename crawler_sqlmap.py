@@ -95,6 +95,7 @@ if __name__ == '__main__':
         crawler.report()
     finally:
         # print("close")
+        crawler.eliminator.display()
         if crawler:
             crawler.close()
         if sqlmap: sqlmap.terminate()

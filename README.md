@@ -8,8 +8,8 @@ It's quite self-explanatory with its name: a cralwer with sqlmap to detect sql i
 2. Capture traffics with mitmproxy in order to discover ajax requests.
 3. Able to extract infos from forms in page to construct Get/Post requests.
 
-## To-DO:
-Deal with interactive operations. For instance, a request can be generated and sent only after a user clicks on one button.
+## Experiment Features:
+1. Deal with interactive operations. For instance, a request can be generated and sent only after a user clicks on one button.
 
 ## Notice
 
