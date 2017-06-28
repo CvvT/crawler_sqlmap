@@ -78,7 +78,7 @@ def main(entry_url, depth=-1, level=1, threads=1, timeout=30, checkhost=True)
 
 样例 (Example)：
 ```
-from test import main
+from crawler_sqlmap import main
 ret, url, simple, content = main("http://demo.aisec.cn/demo/aisec/", depth=1)
 ```
 ret: 执行结果, False为失败, True为成功 (True or False for status)
