@@ -19,27 +19,31 @@ It only works on Linux!!
 
 ## 通过命令行方式启动 (command line)
 ```
-python crawler_sqlmap.py [options]
+python3 crawler_sqlmap.py [options]
 
 Options:
   -h, --help            使用帮助
   -d DEPTH, --depth=DEPTH
                         爬虫爬取深度，不设置则爬取所有链接
   --nocheckhost         不检查爬取链接是否属于同一域
-  --level=LEVEL         sqlmap扫描测试等级：1-5（默认为1），等级越高使用的测试样例越多，结果越精确，时间也越长
-  --timeout=TIMEOUT     sqlmap扫描超时时间（默认30s）
-  -u URL, --url=URL     扫描入口
+  --level=LEVEL         sqlmap扫描测试等级：1-5（default 1），等级越高使用的测试样例越多，结果越精确，时间也越长
+                        Level of tests to perform for sqlmap (1-5, default 1)
+  --timeout=TIMEOUT     sqlmap扫描超时时间（默认30s)
+                        Seconds to wait before timeout connection for sqlmap (default 30)
+  -u URL, --url=URL     扫描入口 (entry to start scanning)
   --threads=THREADS     sqlmap多线程扫描设置（默认为1）
+                        Max number of concurrent HTTP(s) requests for sqlmap (default 1)
   -o OUTPUT, --output=OUTPUT
                         报告输出目录，默认为当前文件夹
+                        path for result file
 ```
 
-  样例：
+  样例 (Example)：
   ```
-  python crawler_sqlmap.py -u "http://demo.aisec.cn/demo/aisec/" --threads=2
+  python3 crawler_sqlmap.py -u "http://demo.aisec.cn/demo/aisec/" --threads=2
   ```
 
-  输出结果保存在: OUTPUT/report_当前日期.json文件中
+  输出结果保存在: OUTPUT/report_currentDate.json文件中
 
   输出结果为json格式，目前直接保存的是sqlmap返回的所有数据，其中比较重要的数据有：
   ```
@@ -72,18 +76,20 @@ def main(entry_url, depth=-1, level=1, threads=1, timeout=30, checkhost=True)
 
 参数含义与命令行参数相同，除了checkhost与命令行的nocheckhost相反
 
-样例：
+样例 (Example)：
 ```
 from test import main
 ret, url, simple, content = main("http://demo.aisec.cn/demo/aisec/", depth=1)
 ```
-ret: 执行结果, False为失败, True为成功
+ret: 执行结果, False为失败, True为成功 (True or False for status)
 
-simple: 解析content抽取重要数据生成的报告，字典类型
+url: entry URL
 
-content: sqlmap返回的完整报告，字典类型
+simple: 解析content抽取重要数据生成的报告，字典类型 (parsed results)
 
-  完整输出样例：
+content: sqlmap返回的完整报告，字典类型 (original results retrieved from sqlmap)
+
+  完整输出样例 (original results)：
   ````
   {
     "http://demo.aisec.cn/demo/aisec/js_link.php?id=2&msg=abc": [
@@ -143,7 +149,7 @@ content: sqlmap返回的完整报告，字典类型
 }
 ````
 
-解析后生成的字典：
+解析后生成的字典 (parsed results)：
 ````
 {
    “result”:[
@@ -188,6 +194,7 @@ sudo apt-get install xvfb
 https://github.com/mozilla/geckodriver/releases
 下载完成后解压至/usr/bin或/usr/local/bin
 注意：由于默认安装的selenium版本不是最新版，请下载版本<= 0.14.0
+IMPORTANT: version <= v0.14.0
 ````
 5. selenium:
 ````

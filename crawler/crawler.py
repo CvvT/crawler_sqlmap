@@ -55,7 +55,7 @@ class Crawler(object):
         self.scheduler.add_task(self.entry, Global.CURRENT_DEPTH, data)
 
         # eliminate duplicate url
-        self.eliminator = UrlEliminator(entry=target, setting=self.setting)    # mark initial page/url visited
+        self.eliminator = UrlEliminator(entry=self.entry, setting=self.setting)    # mark initial page/url visited
 
         # initialize headless browser
         self.browser = HeadlessBrowser(firefox_profile=profile, capabilities=capabilities)

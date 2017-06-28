@@ -18,7 +18,8 @@ def extract_form_fields(soup):
             continue
 
         # single element nome/value fields
-        if input['type'] in ('text', 'hidden', 'password', 'submit', 'image'):
+        typ = input['type'].lower()
+        if typ in ('text', 'hidden', 'password', 'submit', 'image'):
             value = ''
             if input.has_attr('value'):
                 value = input['value']
@@ -26,7 +27,7 @@ def extract_form_fields(soup):
             continue
 
         # checkboxes and radios
-        if input['type'] in ('checkbox', 'radio'):
+        if typ in ('checkbox', 'radio'):
             value = ''
             if input.has_attr('checked'):
                 if input.has_attr('value'):
@@ -41,7 +42,7 @@ def extract_form_fields(soup):
 
             continue
 
-        assert False, 'input type %s not supported' % input['type']
+        assert False, 'input type %s not supported' % typ
 
     # textareas
     for textarea in soup.findAll('textarea'):
