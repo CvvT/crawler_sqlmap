@@ -39,9 +39,11 @@ class UrlEliminator(object):
             self.visited.add(entry)
 
     def visit(self, url):
+        _url = self._urlRegexize(url)
+        # logger.debug("[+]Regexized url %s-->%s" % (url, _url))
         if len(self.visited) == 0:
             self.entry = url
-            self.visited.add(url)
+            self.visited.add(_url)
             return True
 
         if self.setting and not self.setting.nocheckhost and \
@@ -49,8 +51,6 @@ class UrlEliminator(object):
             # logger.debug("It's not the same host %s" % url)
             return False
 
-        _url = self._urlRegexize(url)
-        # logger.debug("[+]Regexized url %s-->%s" % (url, _url))
         if any(_url.endswith(".%s" % each) for each in IGNORED_EXTENSIONS):
             # note: we don't need to worry too much if the url ended with ignored extensions yet turn out to be
             # a normal page, since by here we have format the origin url into a more concise one

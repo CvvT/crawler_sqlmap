@@ -34,10 +34,10 @@ def extract_form_fields(soup):
                     value = input['value']
                 else:
                     value = 'on'
-            if fields.has_attr(input['name']) and value:
+            if input['name']in fields and value:
                 fields[input['name']] = value
 
-            if not fields.has_attr(input['name']):
+            if input['name'] not in fields:
                 fields[input['name']] = value
 
             continue
@@ -80,6 +80,10 @@ def findPageForm(content, url):
         url = urljoin(url, form.get('action'))
         method = form.get('method', 'get')
         data = extract_form_fields(form)
+        # very rare scenario but exists
+        # I can't submit a form with one element named by 'submit'
+        if "submit" in data:
+            del data["submit"]
         target = (url, method, data)
         retVal.append(target)
     return retVal

@@ -5,7 +5,7 @@ from queue import Queue, Empty
 import logging
 import traceback
 
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 
 from . import Global
 
@@ -61,16 +61,14 @@ class Scheduler(object):
                         browser.post(target, data)
                     else:
                         browser.get(target)
-                except TimeoutException:
+                except (TimeoutException, WebDriverException):
                     pass
                 finally:
                     self.FIFOqueue.task_done()
         except Empty:
             logger.debug("Empty queue, ready to quit")
             pass
-        except Exception as e:
-            logger.error("something wrong happened!! %s" % e.message)
-            logger.error(type(e))
+        except:
             traceback.print_exc()
             while not self.FIFOqueue.empty():
                 self.get_task()
