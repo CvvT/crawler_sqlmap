@@ -7,6 +7,7 @@ import urllib.parse as urlparse
 import json
 import os
 import time
+import traceback
 
 from urllib.parse import urlencode
 from bs4 import BeautifulSoup
@@ -52,7 +53,7 @@ class Crawler(object):
 
         # task scheduler
         self.scheduler = Scheduler()
-        self.scheduler.add_task(self.entry, Global.CURRENT_DEPTH, data)
+        self.scheduler.add_task(self.entry, 0, data)
 
         # eliminate duplicate url
         self.eliminator = UrlEliminator(entry=self.entry, setting=self.setting)    # mark initial page/url visited
@@ -154,15 +155,16 @@ class Crawler(object):
         # logger.debug("proxy: %s" % flow.request.url)
         # logger.debug(flow.request.method)
         _url = str(flow.request.url)
-        if "mozilla" in _url:
+        if "mozilla" in _url:   # well, we're using firefox...
             return
         _data = dict()
+        _depth = self.browser.current_depth
         if flow.request.method == "POST":
             for k in flow.request.query:
                 _data[k] = flow.request.query[k]
-            self.add_task(_url, Global.CURRENT_DEPTH+1, data=_data)
+            self.add_task(_url, _depth+1, data=_data)
         else:
-            self.add_task(_url, Global.CURRENT_DEPTH+1)
+            self.add_task(_url, _depth+1)
 
     def add_task(self, url, depth, data=None):
         if self.eliminator.visit(url):
@@ -193,17 +195,17 @@ class Crawler(object):
 
                 if href:
                     url = urlparse.urljoin(page.url, href)
-                    self.add_task(url, Global.CURRENT_DEPTH+1)
+                    self.add_task(url, page.depth+1)
         except Exception as e:
-            logger.error("[parse page error]%s" % e.message)
-            logger.error(type(e))
+            logger.error("[parse page error]")
+            logger.error(traceback.format_exc())
         finally:
             # logger.debug("seaching for forms...")
             for url, method, data in findPageForm(page.source_page, page.url):
-                logger.debug("find one form %s" % url)
+                logger.debug("find one form in %s" % url)
                 if method.upper() == "GET":
                     url = "%s?%s" % (url, urlencode(data))
-                    self.add_task(url, Global.CURRENT_DEPTH+1)
+                    self.add_task(url, page.depth+1)
                 elif method.upper() == "POST":
-                    self.add_task(url, Global.CURRENT_DEPTH+1,
+                    self.add_task(url, page.depth+1,
                                   json.loads(data) if isinstance(data, str) else data)

@@ -23,7 +23,8 @@ def extract_form_fields(soup):
             value = ''
             if input.has_attr('value'):
                 value = input['value']
-            fields[input['name']] = value
+            if input.has_attr('name'):
+                fields[input['name']] = value
             continue
 
         # checkboxes and radios
@@ -34,6 +35,8 @@ def extract_form_fields(soup):
                     value = input['value']
                 else:
                     value = 'on'
+            if not input.has_attr('name'):
+                continue
             if input['name']in fields and value:
                 fields[input['name']] = value
 
@@ -69,7 +72,8 @@ def extract_form_fields(soup):
         else:
             value = [option['value'] for option in selected_options]
 
-        fields[select['name']] = value
+        if select.has_attr('name'):
+            fields[select['name']] = value
 
     return fields
 
@@ -84,6 +88,8 @@ def findPageForm(content, url):
         # I can't submit a form with one element named by 'submit'
         if "submit" in data:
             del data["submit"]
+        if len(data) == 0:
+            continue
         target = (url, method, data)
         retVal.append(target)
     return retVal

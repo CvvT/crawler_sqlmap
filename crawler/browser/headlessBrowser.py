@@ -29,10 +29,15 @@ class HeadlessBrowser(webdriver.Firefox):
         self.display.start()
 
         self._experiment = False
+        self._depth = -1
         # signal
         self.onfinish = Finish()
 
         super(HeadlessBrowser, self).__init__(**kwargs)
+
+    @property
+    def current_depth(self):
+        return self._depth
 
     def close(self):
         logger.debug("start to quit browser")
@@ -43,13 +48,28 @@ class HeadlessBrowser(webdriver.Firefox):
         self._experiment = value
 
     @after("finished")
-    def get(self, url):
+    def request(self, url, depth):
+        """Get request
+
+        :param url:
+        :param depth:
+        :return:
+        """
         logger.debug("[*]Processing %s" % url)
-        super(HeadlessBrowser, self).get(url)    # synchronous api
+        self._depth = depth
+        self.get(url)    # synchronous api
 
     @after("finished")
-    def post(self, url, data):
+    def post(self, url, data, depth):
+        """Post request
+
+        :param url:
+        :param data:
+        :param depth:
+        :return:
+        """
         logger.debug("[*]Processing %s with %s" % (url, json.dumps(data)))
+        self._depth = depth
         self.execute_script(post_js(url, data))  # synchronous api???
 
     def click_buttons(self):
@@ -101,8 +121,11 @@ class HeadlessBrowser(webdriver.Firefox):
             wait.until(jScript_load())
             # deal with buttons which may change the content
             if self._experiment:
+                _url = self.current_url
                 self.click_buttons()
-            page = Page(self.current_url, self.page_source)
+                if _url != self.current_url:
+                    logger.error("[error]page direct from %s to %s" % (_url, self.current_url))
+            page = Page(self.current_url, self.page_source, self._depth)
             self.onfinish(page)
         except Exception as e:    # TimeoutException:
             logger.error("error!!")

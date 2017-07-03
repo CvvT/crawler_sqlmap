@@ -4,10 +4,9 @@
 from queue import Queue, Empty
 import logging
 import traceback
+import json
 
 from selenium.common.exceptions import TimeoutException, WebDriverException
-
-from . import Global
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -46,7 +45,7 @@ class Scheduler(object):
                     options["data"] = post_data
 
                 if setting.test:
-                    logger.debug("options: %s" % options)
+                    logger.debug("options: %s" % json.dumps(options))
 
                 if not setting.test:
                     scanner.add_and_start(**options)
@@ -54,13 +53,10 @@ class Scheduler(object):
                 try:
                     if depth >= setting.depth != -1:
                         continue
-                    # record the depth we are dealing with before we actually get the page
-                    # TODO: store depth rather than using global variable
-                    Global.CURRENT_DEPTH = depth
                     if data:
-                        browser.post(target, data)
+                        browser.post(target, data, depth)
                     else:
-                        browser.get(target)
+                        browser.request(target, depth)
                 except (TimeoutException, WebDriverException):
                     pass
                 finally:
