@@ -90,7 +90,7 @@ if __name__ == '__main__':
     sqlmap, crawler = None, None
     try:
         sqlmap = start_sqlmap()
-        crawler = Crawler(BASE_DIR, "http://demo.aisec.cn/demo/aisec/")
+        crawler = Crawler(BASE_DIR, "http://testphp.vulnweb.com/")
         crawler.run()
         crawler.report()
     finally:

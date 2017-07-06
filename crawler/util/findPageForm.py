@@ -14,11 +14,11 @@ def extract_form_fields(soup):
     fields = {}
     for input in soup.find_all('input'):
         # ignore submit/image with no name attribute
-        if input['type'] in ('submit', 'image') and not input.has_attr('name'):
+        typ = input['type'].lower() if input.has_attr('type') else 'text'   # set default type for input element
+        if typ in ('submit', 'image') and not input.has_attr('name'):
             continue
 
         # single element nome/value fields
-        typ = input['type'].lower()
         if typ in ('text', 'hidden', 'password', 'submit', 'image'):
             value = ''
             if input.has_attr('value'):

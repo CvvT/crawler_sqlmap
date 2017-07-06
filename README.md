@@ -193,12 +193,13 @@ sudo apt-get install xvfb
 ````
 https://github.com/mozilla/geckodriver/releases
 下载完成后解压至/usr/bin或/usr/local/bin
-注意：由于默认安装的selenium版本不是最新版，请下载版本<= 0.14.0
-IMPORTANT: version <= v0.14.0
+注意：由于pip默认安装的selenium版本不是最新版，请下载版本<= 0.14.0
+IMPORTANT: version <= v0.14.0 if you're not using the latest selenium
 ````
 5. selenium:
 ````
 pip3 install selenium
+pip3 install selenium --upgrade (if you'd like to use the latest geckodriver)
 ````
 6. pyvirtualdisplay:
 ````

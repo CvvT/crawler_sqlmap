@@ -13,6 +13,7 @@ from urllib.parse import urlencode
 from bs4 import BeautifulSoup
 from selenium.webdriver import DesiredCapabilities
 from selenium.webdriver import FirefoxProfile
+from selenium.common.exceptions import WebDriverException
 
 from .browser.headlessBrowser import HeadlessBrowser
 from .util.scheduler import Scheduler
@@ -59,7 +60,10 @@ class Crawler(object):
         self.eliminator = UrlEliminator(entry=self.entry, setting=self.setting)    # mark initial page/url visited
 
         # initialize headless browser
-        self.browser = HeadlessBrowser(firefox_profile=profile, capabilities=capabilities)
+        try:
+            self.browser = HeadlessBrowser(firefox_profile=profile, capabilities=capabilities)
+        except WebDriverException:
+            self.browser = HeadlessBrowser(firefox_profile=profile)
         # catch signal whenever a page is loaded
         self.browser.onfinish.connect(self.parse_page)
         self.browser.state_experiment(setting.experiment)
