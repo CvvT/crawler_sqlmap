@@ -38,12 +38,12 @@ class Crawler(object):
         4. proxy: 代理模块
         5. salScanner: sqlmap任务调度模块
     """
-    def __init__(self, base_dir, target=None, data=None, setting=Setting(True)):
+    def __init__(self, base_dir, target=None, data=None, setting=None):
         self.base_dir = base_dir
         self.entry = setting.url if setting.url else target
         if not self.entry:
             raise ValueError("Empty target")
-        self.setting = setting
+        self.setting = setting if setting else Setting(True)
         self.setting.display()
 
         # initial http/https proxy
