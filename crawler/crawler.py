@@ -40,10 +40,10 @@ class Crawler(object):
     """
     def __init__(self, base_dir, target=None, data=None, setting=None):
         self.base_dir = base_dir
-        self.entry = setting.url if setting.url else target
+        self.setting = setting if setting else Setting(True)
+        self.entry = target if target else self.setting.url
         if not self.entry:
             raise ValueError("Empty target")
-        self.setting = setting if setting else Setting(True)
         self.setting.display()
 
         # initial http/https proxy
@@ -67,7 +67,7 @@ class Crawler(object):
             self.browser = HeadlessBrowser(firefox_profile=profile)
         # catch signal whenever a page is loaded
         self.browser.onfinish.connect(self.parse_page)
-        self.browser.state_experiment(setting.experiment)
+        self.browser.state_experiment(self.setting.experiment)
 
         # initialize sqlmap manager
         self.sqlScanner = Autosql(Global.SERVER_IP, Global.SERVER_PORT)
@@ -116,7 +116,7 @@ class Crawler(object):
                     for vector in each["value"]:
                         for no, content in vector["data"].items():
                             payload.append({
-                                "title": content["title"],
+                                "description": content["title"],
                                 "vector": content["vector"],
                                 "payload": content["payload"],
                                 "method": vector['place']

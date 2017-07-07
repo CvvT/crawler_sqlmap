@@ -60,15 +60,15 @@ def find_item(title):
 def lookup(item, translate=False):
     risk_dict = RISK_LEVEL_CHINESE if translate else RISK_LEVEL
     family_dict = FAMILY_TYPE_CHINESE if translate else FAMILY_TYPE
-    ret = find_item(item['title'])
+    ret = find_item(item['description'])
     if not ret:
         item['risk_level'] = 'High'
-        item['description'] = 'unknown'
+        item['name'] = 'unknown'
     else:
         risk_level, desc = Corpus[ret]
         item['risk_level'] = risk_dict[risk_level]
-        item['description'] = family_dict[desc]
-    item['name'] = 'sql injection' if not translate else u"\u0073\u0071\u006c\u6ce8\u5165\u6f0f\u6d1e"
+        item['name'] = family_dict[desc]
+    item['category'] = 'sql injection' if not translate else u"\u0073\u0071\u006c\u6ce8\u5165\u6f0f\u6d1e"
 
 
 if __name__ == '__main__':
