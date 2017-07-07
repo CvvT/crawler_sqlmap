@@ -23,6 +23,7 @@ from .proxy.proxy import ProxyDaemon
 from .setting import Setting
 from .util import Global
 from .autosql import Autosql
+from .util.lookup import lookup, initialize
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -96,6 +97,7 @@ class Crawler(object):
             content: sqlmap返回的完整报告，字典类型
             simple: 解析content抽取重要数据生成的报告，字典类型
         """
+        initialize(self.base_dir)
         self.scheduler.wait()
         self.sqlScanner.wait_task(interval=10)
         cont = {task: data for task, data in self.sqlScanner.data_tasks().items()
@@ -119,6 +121,10 @@ class Crawler(object):
                                 "payload": content["payload"],
                                 "method": vector['place']
                             })
+                    for each_payload in payload:
+                        lookup(each_payload, translate=True)
+                        each_payload['vid'] = ''
+                        each_payload['reference'] = dict()
                     val["vuls"] = payload
             simple.append(val)
         return cont, {"result": simple}
