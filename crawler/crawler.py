@@ -109,8 +109,8 @@ class Crawler(object):
                 typ = each["type"]
                 if typ == 0:
                     val["x_url"] = task
-                    for str in ["url", "query", "data"]:
-                        val[str] = each["value"][str] if each["value"][str] else ""
+                    for string in ["url", "query", "data"]:
+                        val[string] = each["value"][string] if each["value"][string] else ""
                 elif typ == 1:
                     payload = list()
                     for vector in each["value"]:
@@ -125,6 +125,8 @@ class Crawler(object):
                         lookup(each_payload, translate=True)
                         each_payload['vid'] = ''
                         each_payload['reference'] = dict()
+                        if not isinstance(each_payload['vector'], str):
+                            each_payload['vector'] = json.dumps(each_payload['vector'])
                     val["vuls"] = payload
             simple.append(val)
         return cont, {"result": simple}
