@@ -19,33 +19,38 @@ logger = logging.getLogger(__name__)
 BASE_DIR = os.path.dirname(__file__)
 HINT = 0
 
+MAX_PORT_NUMBER = 65535
 
 def check_port(port):  # is used
-    lines = os.popen("netstat -at | awk '{print $4}' | grep %d" % port).read().split("\n")
-    for line in lines:
-        if len(line.strip()) > 0:
-            return True
+    try:
+        lines = os.popen("netstat -at | awk '{print $4}' | grep %d" % port).read().split("\n")
+        for line in lines:
+            if len(line.strip()) > 0:
+                return True
+    except:
+        return False
     return False
 
 
 def get_available_port():
     global HINT
     while True:
-        port = 21345 + HINT
+        port = 8775 + HINT
         HINT += 1
+        if port > MAX_PORT_NUMBER:
+            raise Exception("no available port")
         if not check_port(port):
             return port
 
 
-def start_sqlmap():
+def start_sqlmap(addr="127.0.0.1"):
     port = get_available_port()
-    Global.SERVER_PORT = port
-    sqlmap = subprocess.Popen(["python2", "sqlmapapi.py", "-s", "-p", str(Global.SERVER_PORT),
-                               "-H", Global.SERVER_IP], cwd=os.path.join(BASE_DIR, "sqlmap"))
+    sqlmap = subprocess.Popen(["python2", "sqlmapapi.py", "-s", "-p", str(port),
+                               "-H", addr], cwd=os.path.join(BASE_DIR, "sqlmap"))
     while check_port(port):
         logger.debug("wait 5 seconds for sqlmap initialization")
         time.sleep(5)  # wait 5 seconds for sqlmap initialization
-    return sqlmap
+    return sqlmap, addr, port
 
 
 def crawler_sqlmap(entry_url, depth=-1, level=1, threads=2, timeout=30, checkhost=True):
@@ -73,9 +78,9 @@ def crawler_sqlmap(entry_url, depth=-1, level=1, threads=2, timeout=30, checkhos
 
     sqlmap, crawler = None, None
     try:
-        sqlmap = start_sqlmap()
+        sqlmap, ip, port = start_sqlmap()
         # crawler的创建必须在sqlmap启动之后, 才能正确获取sqlmap的端口号
-        crawler = Crawler(BASE_DIR, entry_url, setting=settings)
+        crawler = Crawler(BASE_DIR, ip, port, entry_url, setting=settings)
         crawler.run()
         cont, simple = crawler.raw_report()
         return True, entry_url, simple, cont
@@ -91,8 +96,8 @@ if __name__ == '__main__':
     # print(json.dumps(simp))
     sqlmap, crawler = None, None
     try:
-        sqlmap = start_sqlmap()
-        crawler = Crawler(BASE_DIR, "http://testphp.vulnweb.com/")
+        sqlmap, ip, port = start_sqlmap()
+        crawler = Crawler(BASE_DIR, ip, port, "http://testphp.vulnweb.com/")
         crawler.run()
         crawler.report()
     finally:

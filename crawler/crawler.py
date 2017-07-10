@@ -21,7 +21,6 @@ from .util.urleliminate import UrlEliminator
 from .util.findPageForm import findPageForm
 from .proxy.proxy import ProxyDaemon
 from .setting import Setting
-from .util import Global
 from .autosql import Autosql
 from .util.lookup import lookup, initialize
 
@@ -38,7 +37,7 @@ class Crawler(object):
         4. proxy: 代理模块
         5. salScanner: sqlmap任务调度模块
     """
-    def __init__(self, base_dir, target=None, data=None, setting=None):
+    def __init__(self, base_dir, sqlmap_ip, sqlmap_port, target=None, data=None, setting=None):
         self.base_dir = base_dir
         self.setting = setting if setting else Setting(True)
         self.entry = target if target else self.setting.url
@@ -70,7 +69,7 @@ class Crawler(object):
         self.browser.state_experiment(self.setting.experiment)
 
         # initialize sqlmap manager
-        self.sqlScanner = Autosql(Global.SERVER_IP, Global.SERVER_PORT)
+        self.sqlScanner = Autosql(sqlmap_ip, sqlmap_port)
 
     def run(self):
         """启动扫描任务

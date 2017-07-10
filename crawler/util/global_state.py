@@ -4,8 +4,7 @@
 
 # store all global variables in this file
 ALL = {
-    "SERVER_IP": "127.0.0.1",
-    "SERVER_PORT": 8775
+
 }
 
 class State(object):
