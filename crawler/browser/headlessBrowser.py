@@ -7,7 +7,7 @@ import traceback
 from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import NoAlertPresentException
+from selenium.common.exceptions import NoAlertPresentException, WebDriverException
 
 from .decorator import after
 from .signal import Finish
@@ -41,7 +41,10 @@ class HeadlessBrowser(webdriver.Firefox):
 
     def close(self):
         logger.debug("start to quit browser")
-        self.quit()
+        try:
+            self.quit()
+        except WebDriverException:
+            logger.error("firefox shutdown earlier")
         self.display.stop()
 
     def state_experiment(self, value):

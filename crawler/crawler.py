@@ -23,6 +23,7 @@ from .proxy.proxy import ProxyDaemon
 from .setting import Setting
 from .autosql import Autosql
 from .util.lookup import lookup, initialize
+from .util.utils import execute
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -45,12 +46,9 @@ class Crawler(object):
             raise ValueError("Empty target")
         self.setting.display()
 
-        # initial http/https proxy
+        # initialize http/https proxy and start browser
         self.proxy = self.initProxy()
-        profile = self.setProxy(self.proxy)
-        capabilities = DesiredCapabilities.FIREFOX.copy()
-        capabilities['acceptSslCerts'] = True
-        capabilities['acceptInsecureCerts'] = True
+        self.initBrowser(self.proxy)
 
         # task scheduler
         self.scheduler = Scheduler()
@@ -58,15 +56,6 @@ class Crawler(object):
 
         # eliminate duplicate url
         self.eliminator = UrlEliminator(entry=self.entry, setting=self.setting)    # mark initial page/url visited
-
-        # initialize headless browser
-        try:
-            self.browser = HeadlessBrowser(firefox_profile=profile, capabilities=capabilities)
-        except WebDriverException:
-            self.browser = HeadlessBrowser(firefox_profile=profile)
-        # catch signal whenever a page is loaded
-        self.browser.onfinish.connect(self.parse_page)
-        self.browser.state_experiment(self.setting.experiment)
 
         # initialize sqlmap manager
         self.sqlScanner = Autosql(sqlmap_ip, sqlmap_port)
@@ -77,7 +66,21 @@ class Crawler(object):
         初始化完成后，调用本函数启动扫描
         :return:
         """
-        self.scheduler.run(self.browser, self.sqlScanner, self.setting)
+        while True:
+            try:
+                self.scheduler.run(self.browser, self.sqlScanner, self.setting)
+                break
+            except WebDriverException:
+                if execute("ps | awk '{print $4}' | grep firefox"):  # still alive or not
+                    self.scheduler.flush()
+                    logger.error(traceback.format_exc())
+                    break
+                # restart headless browser
+                self.initBrowser(self.proxy)
+            except:
+                logger.error(traceback.format_exc())
+                self.scheduler.flush()
+                break
 
     def report(self):
         self.scheduler.wait()
@@ -141,6 +144,21 @@ class Crawler(object):
         self.sqlScanner.flush_tasks()
         # make sure close proxy at last
         self.proxy.stop()
+
+    def initBrowser(self, proxy):
+        profile = self.setProxy(proxy)
+        capabilities = DesiredCapabilities.FIREFOX.copy()
+        capabilities['acceptSslCerts'] = True
+        capabilities['acceptInsecureCerts'] = True
+
+        # initialize headless browser
+        try:
+            self.browser = HeadlessBrowser(firefox_profile=profile, capabilities=capabilities)
+        except WebDriverException:
+            self.browser = HeadlessBrowser(firefox_profile=profile)
+        # catch signal whenever a page is loaded
+        self.browser.onfinish.connect(self.parse_page)
+        self.browser.state_experiment(self.setting.experiment)
 
     def initProxy(self):
         proxy = ProxyDaemon(cadir=os.path.join(self.base_dir, "ssl/"))

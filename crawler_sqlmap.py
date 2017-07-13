@@ -10,10 +10,11 @@ import json
 import traceback
 
 from crawler.crawler import Crawler
-from crawler.util import Global
 from crawler.setting import Setting
+from crawler.util.utils import execute
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+# logging.basicConfig(filename="logger.txt", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(__file__)
@@ -22,15 +23,7 @@ HINT = 0
 MAX_PORT_NUMBER = 65535
 
 def check_port(port):  # is used
-    try:
-        lines = os.popen("netstat -at | awk '{print $4}' | grep %d" % port).read().split("\n")
-        for line in lines:
-            if len(line.strip()) > 0:
-                return True
-    except:
-        return False
-    return False
-
+    return execute("netstat -at | awk '{print $4}' | grep %d" % port)
 
 def get_available_port():
     global HINT
@@ -85,7 +78,7 @@ def crawler_sqlmap(entry_url, depth=-1, level=1, threads=2, timeout=30, checkhos
         cont, simple = crawler.raw_report()
         return True, entry_url, simple, cont
     except:
-        traceback.print_exc()
+        logger.error(traceback.format_exc())
         return False, entry_url, traceback.format_exc(), {}
     finally:
         if crawler: crawler.close()

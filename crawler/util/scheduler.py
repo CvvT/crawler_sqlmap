@@ -3,7 +3,6 @@
 # __author__ = 'CwT'
 from queue import Queue, Empty
 import logging
-import traceback
 import json
 
 from selenium.common.exceptions import TimeoutException, WebDriverException
@@ -25,6 +24,11 @@ class Scheduler(object):
 
     def get_task(self, block=False):
         return self.FIFOqueue.get(block=block)
+
+    def flush(self):
+        while not self.FIFOqueue.empty():
+            self.get_task()
+            self.FIFOqueue.task_done()
 
     def run(self, browser, scanner, setting):
         try:
@@ -57,18 +61,17 @@ class Scheduler(object):
                         browser.post(target, data, depth)
                     else:
                         browser.request(target, depth)
-                except (TimeoutException, WebDriverException):
+                except TimeoutException:
                     pass
+                except WebDriverException:
+                    logger.error("firefox shutdown")
+                    self.add_task(target, depth, data=data)  # add back and see if we can re-try
+                    raise
                 finally:
                     self.FIFOqueue.task_done()
         except Empty:
             logger.debug("Empty queue, ready to quit")
-            pass
         except:
-            traceback.print_exc()
-            while not self.FIFOqueue.empty():
-                self.get_task()
-                self.FIFOqueue.task_done()
             raise
 
 
